@@ -731,14 +731,23 @@ public class Camera1Engine extends CameraBaseEngine implements
                     mCameraOptions.getPreviewFrameRateMaxValue());
             mPreviewFrameRate = Math.max(mPreviewFrameRate,
                     mCameraOptions.getPreviewFrameRateMinValue());
+            int rate = Math.round(mPreviewFrameRate);
+            int[] candidateFpsRange = null;
             for (int[] fpsRange : fpsRanges) {
                 float lower = (float) fpsRange[0] / 1000F;
                 float upper = (float) fpsRange[1] / 1000F;
-                float rate = Math.round(mPreviewFrameRate);
-                if (lower <= rate && rate <= upper) {
+                // lower and upper is same, it's like an exact FPS value
+                if (lower == mPreviewFrameRate && upper == mPreviewFrameRate) {
                     params.setPreviewFpsRange(fpsRange[0], fpsRange[1]);
                     return true;
                 }
+                if (lower <= rate && rate <= upper) {
+                    candidateFpsRange = fpsRange;
+                }
+            }
+            if (candidateFpsRange != null) {
+                params.setPreviewFpsRange(candidateFpsRange[0], candidateFpsRange[1]);
+                return true;
             }
         }
         mPreviewFrameRate = oldPreviewFrameRate;

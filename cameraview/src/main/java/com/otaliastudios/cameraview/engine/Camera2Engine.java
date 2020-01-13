@@ -1392,11 +1392,21 @@ public class Camera2Engine extends CameraBaseEngine implements
                     mCameraOptions.getPreviewFrameRateMaxValue());
             mPreviewFrameRate = Math.max(mPreviewFrameRate,
                     mCameraOptions.getPreviewFrameRateMinValue());
+            int rate = Math.round(mPreviewFrameRate);
+            Range<Integer> candidateFpsRange = null;
             for (Range<Integer> fpsRange : fpsRanges) {
-                if (fpsRange.contains(Math.round(mPreviewFrameRate))) {
+                // lower and upper is same, it's like an exact FPS value
+                if (fpsRange.getLower() == rate && fpsRange.getUpper() == rate) {
                     builder.set(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE, fpsRange);
                     return true;
                 }
+                if (fpsRange.contains(rate)) {
+                    candidateFpsRange = fpsRange;
+                }
+            }
+            if (candidateFpsRange != null) {
+                builder.set(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE, candidateFpsRange);
+                return true;
             }
         }
         mPreviewFrameRate = oldPreviewFrameRate;
